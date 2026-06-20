@@ -83,3 +83,11 @@ From the sidebar menu, you can configure the underlying model:
 - **Distance Metric**: Switch between `Euclidean`, `Cosine`, or `Cityblock` (Manhattan) metrics.
 - **Target Clusters (k)**: Set the number of schemas expected.
 - **Data Quality Filter**: Toggle between **Clean Training Data** (filtering out crawlers/errors) and **Raw / Noisy Training Data** to see the clustering boundary degrade.
+
+## Dashboard Demo
+
+Live interactive demo here: https://graphsift-118680568866.us-west1.run.app
+
+Dashboard Sample View:
+
+<img width="1994" height="970" alt="Screenshot 2026-06-20 at 12 38 21 AM" src="https://github.com/user-attachments/assets/d96fbc6f-b7e9-4f96-8668-6b8e0af7e8d4" />
