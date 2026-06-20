@@ -41,7 +41,7 @@ This builds the application image and spins up the Streamlit server in a single 
 ### 2. Launch the Web Application
 Open your web browser and navigate to:
 ```
-http://localhost:8501
+http://localhost:8503
 ```
 
 ### 3. Stop the Application
