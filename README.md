@@ -81,7 +81,7 @@ From the sidebar menu, you can configure the underlying model:
 
 ## Dashboard Demo
 
-Live interactive demo here: https://graphsift-118680568866.us-west1.run.app
+Live interactive demo here: https://tinyurl.com/2z3vw4c4
 
 Dashboard Sample View:
 
