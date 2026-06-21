@@ -85,6 +85,7 @@ Live interactive demo here: https://graphsift-118680568866.us-west1.run.app
 
 Dashboard Sample View:
 
-<img width="1994" height="970" alt="Screenshot 2026-06-20 at 12 38 21 AM" src="https://github.com/user-attachments/assets/d96fbc6f-b7e9-4f96-8668-6b8e0af7e8d4" />
+<img width="1987" height="931" alt="Screenshot 2026-06-21 at 2 17 54 AM" src="https://github.com/user-attachments/assets/900f9d07-a45e-4891-9815-67d2464e2925" />
+
 
 
