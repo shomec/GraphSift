@@ -150,8 +150,7 @@ st.markdown(
 # --- SIDEBAR: DATASET PARAMETERS ---
 st.sidebar.markdown("### 🕸️ Model Parameters")
 
-clean_count = st.sidebar.slider("Clean Payload Samples", min_value=30, max_value=250, value=120, step=10)
-noise_count = st.sidebar.slider("Noisy Background Samples", min_value=0, max_value=100, value=30, step=5)
+sample_count = st.sidebar.slider("Payload Samples", min_value=30, max_value=250, value=120, step=10)
 
 st.sidebar.markdown("### 🛠️ Clustering Settings")
 linkage_method = st.sidebar.selectbox("Linkage Method", ["ward", "complete", "average"], index=0)
@@ -162,14 +161,6 @@ distance_metric = st.sidebar.selectbox("Distance Metric", distance_metrics, inde
 
 n_clusters = st.sidebar.slider("Target Endpoint Clusters (k)", min_value=2, max_value=6, value=3)
 
-# Data Quality sandbox mode toggle
-st.sidebar.markdown("### 🧠 Unsupervised Learning Mode")
-data_quality_mode = st.sidebar.radio(
-    "Data Quality Filter:",
-    ["Clean Training Data (Best Practice)", "Raw / Noisy Training Data (No Filters)"],
-    index=0
-)
-
 # Header Section
 st.markdown("<div class='glow-header'>GraphSift</div>", unsafe_allow_html=True)
 st.markdown("<div class='subtitle'>API Payload Structure & Dependency Audit Engine for Resilient Microservices</div>", unsafe_allow_html=True)
@@ -178,16 +169,12 @@ st.markdown("<div class='subtitle'>API Payload Structure & Dependency Audit Engi
 st.markdown(
     """
     <div class='glass-card'>
-        <h4>🔬 The Unsupervised Learning & Data Quality Mandate</h4>
+        <h4>🔬 The Unsupervised Auditing Mandate</h4>
         <p>
-            In production systems, microservices continuously exchange JSON payloads. Changes in payload structure (new schemas, redundant keys, or type shifts) 
-            can degrade database performance, crash pipelines, and open security vulnerability surfaces. 
+            In production systems, microservices continuously exchange JSON payloads. Silently changed schemas, bloated payloads with redundant keys, or incorrect data types can degrade performance, break pipelines, and impact service maintainability.
         </p>
         <p>
-            <b>GraphSift</b> demonstrates how <b>unsupervised clustering</b> groups structures into natural endpoint schemas, and how 
-            an <b>Isolation Forest</b> detects structural drift. It also showcases a fundamental rule of machine learning: 
-            <b>Data Quality is Everything.</b> Training models on unfiltered, noisy data compromises clustering boundaries, yielding 
-            inaccurate schemas and high false alarm rates.
+            <b>GraphSift</b> acts as a proxy audit engine that flattens JSON payloads into numerical feature vectors. By running <b>Agglomerative Hierarchical Clustering</b>, it groups payloads into natural "endpoint schemas." An unsupervised <b>Isolation Forest</b> builds a tight structural boundary to immediately trigger alerts and flag anomalous or malicious payloads in real time.
         </p>
     </div>
     """,
@@ -196,21 +183,10 @@ st.markdown(
 
 # --- GENERATE DATASET & TRAIN MODEL ---
 @st.cache_data(show_spinner=False)
-def get_cached_dataset(n_clean, n_noise):
-    return generate_dataset(n_clean=n_clean, n_noise=n_noise)
+def get_cached_dataset(n_samples):
+    return generate_dataset(n_samples=n_samples)
 
-# If Clean Training Mode is selected, we filter out noise from the training set.
-# This proves the exact point: removing noise is critical for high quality unsupervised models.
-raw_dataset = get_cached_dataset(clean_count, noise_count)
-
-if data_quality_mode == "Clean Training Data (Best Practice)":
-    # Filter the dataset to include ONLY clean endpoints (simulate data clearing pipeline)
-    training_dataset = [item for item in raw_dataset if item["label"] == "clean"]
-    is_data_clean = True
-else:
-    # Train on everything including crawling scrapers, stack trace noise, and error logs (raw ingestion)
-    training_dataset = raw_dataset
-    is_data_clean = False
+training_dataset = get_cached_dataset(sample_count)
 
 # Fit clustering and anomaly engine
 engine = SchemaAuditEngine(linkage_method=linkage_method, distance_metric=distance_metric)
@@ -219,8 +195,6 @@ df_summary = engine.get_summary_df()
 
 # Compute evaluation metrics to display to the user
 cophenetic_score = engine.cophenetic_corr
-noise_in_training = len([x for x in training_dataset if x["label"] == "noise"])
-noisy_ratio = noise_in_training / len(training_dataset) * 100
 
 # --- METRIC CARDS ROW ---
 col1, col2, col3, col4 = st.columns(4)
@@ -231,19 +205,18 @@ with col1:
         <div class="glass-card">
             <div class="metric-label">Training Set Size</div>
             <div class="metric-value" style="color: #6366f1;">{len(training_dataset)}</div>
-            <div style="font-size: 0.8rem; color: #94a3b8;">API structures ingesting</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Ingested payload schemas</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 with col2:
-    color = "#ef4444" if noisy_ratio > 0 else "#10b981"
     st.markdown(
         f"""
         <div class="glass-card">
-            <div class="metric-label">Noise Contamination</div>
-            <div class="metric-value" style="color: {color};">{noisy_ratio:.1f}%</div>
-            <div style="font-size: 0.8rem; color: #94a3b8;">{noise_in_training} noisy payloads in training</div>
+            <div class="metric-label">Endpoint Cluster Groups</div>
+            <div class="metric-value" style="color: #38bdf8;">{n_clusters}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Target schema partitions</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -256,21 +229,18 @@ with col3:
         <div class="glass-card">
             <div class="metric-label">Cophenetic Coefficient</div>
             <div class="metric-value" style="color: {coph_color};">{cophenetic_score:.3f}</div>
-            <div style="font-size: 0.8rem; color: #94a3b8;">Clustering hierarchy reliability</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Clustering stability metric</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 with col4:
-    # Model Status
-    status_text = "OPTIMIZED BOUNDARY" if is_data_clean else "COMPROMISED BOUNDARY"
-    status_color = "#10b981" if is_data_clean else "#f59e0b"
     st.markdown(
-        f"""
+        """
         <div class="glass-card">
-            <div class="metric-label">Model Protection Status</div>
-            <div class="metric-value" style="color: {status_color}; font-size: 1.45rem; padding: 0.35rem 0;">{status_text}</div>
-            <div style="font-size: 0.8rem; color: #94a3b8;">Data Sifting Pipeline is {"Active" if is_data_clean else "Disabled"}</div>
+            <div class="metric-label">Schema Guard Status</div>
+            <div class="metric-value" style="color: #10b981; font-size: 1.6rem; padding: 0.2rem 0;">ACTIVE GUARD</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Outlier detection monitoring</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -287,12 +257,8 @@ with vis_col1:
     fig, ax = plt.subplots(figsize=(10, 5), facecolor="#141722")
     ax.set_facecolor("#141722")
     
-    # We assign label identifiers representing the microservice endpoints or noise
-    dendrogram_labels = []
-    for i in range(len(training_dataset)):
-        endpoint_name = training_dataset[i]["endpoint"]
-        label_class = training_dataset[i]["label"]
-        dendrogram_labels.append(f"{endpoint_name} ({label_class[0].upper()})")
+    # We assign label identifiers representing the microservice endpoints
+    dendrogram_labels = [training_dataset[i]["endpoint"] for i in range(len(training_dataset))]
         
     dendrogram(
         engine.linkage_matrix,
@@ -342,32 +308,6 @@ with vis_col2:
         height=380
     )
     st.plotly_chart(fig_pca, use_container_width=True)
-
-# --- DATA QUALITY SANDBOX COMPARISON ---
-if not is_data_clean:
-    st.markdown(
-        """
-        <div class="alert-container alert-warning">
-            ⚠️ <b>CRITICAL WARNING: Training with Noise Contaminants!</b><br/>
-            Notice that the clusters in the PCA diagram are overlapping, and the dendrogram is messy. 
-            Because we are training the unsupervised model on web crawler logs, heartbeat ticks, and stack traces, the 
-            system boundary is loose. Hackers or bloated schema drift will bypass this boundary, leading to security 
-            breaches and service crashes. <b>Toggle 'Clean Training Data' in the sidebar to activate the sifting filter!</b>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-else:
-    st.markdown(
-        """
-        <div class="alert-container alert-normal">
-            ✅ <b>Sifting Filter Active: High Quality Data Training!</b><br/>
-            Unsupervised learning successfully grouped payloads into perfect microservice schemas. Notice the high Cophenetic Coefficient 
-            (closer to 1.0 indicates stable clusters). Anomaly thresholds are tight and precise.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
 # --- INGESTION & AUDIT SANDBOX ---
 st.markdown("---")

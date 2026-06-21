@@ -49,32 +49,6 @@ def gen_inventory_item():
         "restock_needed": random.choice([True, False])
     }
 
-# Noise Payloads
-def gen_noise_crawler():
-    # Simulated search engine scraper or basic probe payload
-    return {
-        "headers": {
-            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
-            "Accept": "*/*"
-        },
-        "method": "GET",
-        "path": random.choice(["/robots.txt", "/sitemap.xml", "/.env", "/wp-login.php"])
-    }
-
-def gen_noise_error():
-    # Database connection or code crash stack traces
-    return {
-        "error": "Internal Server Error",
-        "code": 500,
-        "message": "database connection pool exhausted",
-        "timestamp": datetime.utcnow().isoformat(),
-        "traceback": "Traceback (most recent call): File '/app/db.py', line 45, in connect ... ConnectionRefusedError"
-    }
-
-def gen_noise_ping():
-    # Very short heartbeat/ping
-    return {"ping": True}
-
 # Anomalous/Drift Payloads
 def gen_anomaly_bloat(endpoint_type):
     # Generates a bloated schema with 30-50 extra randomized keys
@@ -128,15 +102,15 @@ def gen_anomaly_large_strings():
         "comment": "B" * random.randint(5000, 8000)
     }
 
-def generate_dataset(n_clean=100, n_noise=0):
+def generate_dataset(n_samples=120):
     """
-    Generates a dataset of API payloads containing a mix of endpoints and optional noise.
+    Generates a dataset of API payloads containing a mix of endpoints.
     """
     dataset = []
     
-    # 1. Add clean microservice endpoints
+    # Add clean microservice endpoints
     endpoints = ["user", "payment", "inventory"]
-    for _ in range(n_clean):
+    for _ in range(n_samples):
         ep = random.choice(endpoints)
         if ep == "user":
             payload = gen_user_profile()
@@ -145,17 +119,6 @@ def generate_dataset(n_clean=100, n_noise=0):
         else:
             payload = gen_inventory_item()
         dataset.append({"endpoint": ep, "payload": payload, "label": "clean"})
-        
-    # 2. Add noise payloads if requested
-    for _ in range(n_noise):
-        noise_type = random.choice(["crawler", "error", "ping"])
-        if noise_type == "crawler":
-            payload = gen_noise_crawler()
-        elif noise_type == "error":
-            payload = gen_noise_error()
-        else:
-            payload = gen_noise_ping()
-        dataset.append({"endpoint": "noise", "payload": payload, "label": "noise"})
         
     random.shuffle(dataset)
     return dataset

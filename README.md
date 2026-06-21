@@ -19,9 +19,6 @@ Microservices are constantly communicating. When a third-party API silently chan
 3. **Unsupervised Clustering**: Agglomerative Hierarchical Clustering (using Cosine or Euclidean linkage) groups structures into natural API endpoints.
 4. **The Security Guardrail**: An unsupervised **Isolation Forest** learns normal boundaries. If a bloated, deeply-nested, or typed-mismatched payload comes in, it triggers a **Critical Structural Drift Alert** to block the traffic.
 
-### ⚠️ The Data Quality Rule: "Garbage In, Garbage Out"
-GraphSift includes a **Data Quality comparison sandbox** showing how training on noisy data (web crawlers scanning random URLs, database stack traces, heartbeats) compromises clustering boundaries. Filtering out noise yields clean schemas, a high Cophenetic Correlation Coefficient, and highly reliable drift detection.
-
 ---
 
 ## 🛠️ Step-by-Step Installation & Launch
@@ -78,11 +75,9 @@ GraphSift includes a live interactive sandbox to test payloads:
 ## ⚙️ Configuration & Model Tweaking
 
 From the sidebar menu, you can configure the underlying model:
-- **Clean Payload / Noisy Samples**: Increase or decrease samples to test scaling.
+- **Payload Samples**: Adjust the number of generated sample payloads to test clustering scaling.
 - **Linkage Method**: Choose between `Ward`, `Complete`, or `Average`.
 - **Distance Metric**: Switch between `Euclidean`, `Cosine`, or `Cityblock` (Manhattan) metrics.
-- **Target Clusters (k)**: Set the number of schemas expected.
-- **Data Quality Filter**: Toggle between **Clean Training Data** (filtering out crawlers/errors) and **Raw / Noisy Training Data** to see the clustering boundary degrade.
 
 ## Dashboard Demo
 
@@ -91,3 +86,5 @@ Live interactive demo here: https://graphsift-118680568866.us-west1.run.app
 Dashboard Sample View:
 
 <img width="1994" height="970" alt="Screenshot 2026-06-20 at 12 38 21 AM" src="https://github.com/user-attachments/assets/d96fbc6f-b7e9-4f96-8668-6b8e0af7e8d4" />
+
+
